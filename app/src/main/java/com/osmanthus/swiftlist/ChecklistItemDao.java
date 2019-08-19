@@ -3,6 +3,7 @@ package com.osmanthus.swiftlist;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
+import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 
@@ -16,7 +17,7 @@ public interface ChecklistItemDao {
     @Query("SELECT * FROM checklistitem ORDER BY position ASC")
     List<ChecklistItem> getAllChecklistItemsByPosition();
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(ChecklistItem item);
 
     @Update
