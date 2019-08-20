@@ -18,10 +18,11 @@
         android:id="@+id/widget_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipToPadding="false"
         android:dividerHeight="1px"
         android:footerDividersEnabled="true"
         android:headerDividersEnabled="true"
-        android:paddingBottom="20dp" />
+        android:paddingBottom="2dp" />
 
 
 </RelativeLayout>

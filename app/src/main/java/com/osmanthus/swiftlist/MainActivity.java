@@ -12,7 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-//TODO - add divider to last item in widget list
+//DONE - add divider to last item in widget list
 //DONE - change curve radius of widget list
 //TODO - add settings for transparency, color, add position (top or bot), text size
 //DONE - reduce checkmark size of widget list

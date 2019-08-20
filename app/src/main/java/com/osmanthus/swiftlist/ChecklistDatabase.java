@@ -20,7 +20,7 @@ public abstract class ChecklistDatabase extends RoomDatabase {
 
     private static ChecklistDatabase create(final Context context) {
         //TODO - don't force this to be on the main thread
-        return Room.databaseBuilder(context, ChecklistDatabase.class, DB_NAME).allowMainThreadQueries().build();
+        return Room.databaseBuilder(context, ChecklistDatabase.class, DB_NAME).build();
     }
 
     public abstract ChecklistItemDao getChecklistDao();

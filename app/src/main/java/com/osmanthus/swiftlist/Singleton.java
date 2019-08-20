@@ -3,6 +3,7 @@ package com.osmanthus.swiftlist;
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.os.AsyncTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,9 +31,15 @@ class Singleton {
         appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list);
     }
 
-    public List<ChecklistItem> getItemList(Context context) {
-        if (listItems == null)
-            listItems = (ArrayList<ChecklistItem>)ChecklistDatabase.getInstance(context).getChecklistDao().getAllChecklistItemsByPosition();
+    public List<ChecklistItem> getItemList(final Context context) {
+        if (listItems == null) {
+            AsyncTask.execute(new Runnable() {
+                @Override
+                public void run() {
+                    listItems = (ArrayList<ChecklistItem>) ChecklistDatabase.getInstance(context).getChecklistDao().getAllChecklistItemsByPosition();
+                }
+            });
+        }
         return listItems;
     }
 
@@ -53,17 +60,19 @@ class Singleton {
     public int deleteChecked(Context context) {
         //TODO - use better method to keep track of checked items (maybe have a separate collection for them)
         ChecklistItemDao tempRef = ChecklistDatabase.getInstance(context).getChecklistDao();
-        List<ChecklistItem> toDelete = new ArrayList<>();
+        ChecklistItem tempItem;
         int totalDeleted = 0;
-        for (ChecklistItem ci : listItems) {
-            if (ci.isChecked) {
+        int i = 0;
+        while (i < listItems.size()) {
+            tempItem = listItems.get(i);
+            if(tempItem.isChecked) {
                 totalDeleted++;
-                tempRef.delete(ci);
-                toDelete.add(ci);
+                tempRef.delete(tempItem);
+                listItems.remove(i);
+            } else {
+                i++;
             }
         }
-        listItems.removeAll(toDelete);
-        toDelete.clear();
 
         return totalDeleted;
     }
