@@ -24,10 +24,7 @@ public class DragController extends Callback {
 
     @Override
     public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
-        Singleton.getInstance().swapChecklistItems(context, viewHolder.getAdapterPosition(), viewHolder1.getAdapterPosition());
-
-        adapter.notifyItemMoved(viewHolder.getAdapterPosition(), viewHolder1.getAdapterPosition());
-        Singleton.getInstance().updateWidgetView(context);
+        TaskDispatcher.getInstance().swapItems(context, viewHolder.getAdapterPosition(), viewHolder1.getAdapterPosition());
         return true;
     }
 

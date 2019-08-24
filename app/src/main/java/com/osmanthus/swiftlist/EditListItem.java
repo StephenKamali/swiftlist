@@ -54,20 +54,18 @@ public class EditListItem extends AppCompatActivity {
     }
 
     private void saveEdit(String text, int index) {
-        List<ChecklistItem> tempList = Singleton.getInstance().getItemList(this);
-        int size = tempList.size();
+        int size = TaskDispatcher.getInstance().getChecklistItems(this).size();
         //TODO - cleanup what is needed to make a new checklist item (don't need to pass size twice, false can be set by default)
         if (!isEdit) {
-            ChecklistItem newItem = new ChecklistItem(size, size, text, false);
-            tempList.add(newItem);
-            //adapter.notifyItemInserted(size);
-            ChecklistDatabase.getInstance(this).getChecklistDao().insert(newItem);
+            ChecklistItem newItem = new ChecklistItem(size, text, false);
+            TaskDispatcher.getInstance().addItem(this, newItem, size);
         } else {
-            tempList.get(index).text = text;
-            ChecklistDatabase.getInstance(this).getChecklistDao().update(tempList.get(index));
+            ChecklistItem toUpdate = TaskDispatcher.getInstance().getChecklistItems(this).get(index);
+            ChecklistItem updatedItem = new ChecklistItem(toUpdate);
+            updatedItem.text = text;
+            TaskDispatcher.getInstance().updateItem(this, updatedItem, index);
         }
 
-        Singleton.getInstance().updateWidgetView(this);
         finish();
     }
 }

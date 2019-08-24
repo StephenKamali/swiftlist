@@ -8,6 +8,8 @@ import android.content.Context;
 @Database(entities =  {ChecklistItem.class}, version = 1)
 public abstract class ChecklistDatabase extends RoomDatabase {
 
+    public abstract ChecklistItemDao getChecklistDao();
+
     private static final String DB_NAME = "checklistDatabase.db";
     private static volatile ChecklistDatabase instance;
 
@@ -19,9 +21,6 @@ public abstract class ChecklistDatabase extends RoomDatabase {
     }
 
     private static ChecklistDatabase create(final Context context) {
-        //TODO - don't force this to be on the main thread
         return Room.databaseBuilder(context, ChecklistDatabase.class, DB_NAME).build();
     }
-
-    public abstract ChecklistItemDao getChecklistDao();
 }

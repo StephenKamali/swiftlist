@@ -36,32 +36,43 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public int getCount() {
-        return Singleton.getInstance().getItemList(context).size();
+        //TODO - should probably cache the list here too
+        if (TaskDispatcher.getInstance().getChecklistItems(context) != null)
+            return TaskDispatcher.getInstance().getChecklistItems(context).size();
+        else
+            return 0;
     }
 
     @Override
     public RemoteViews getViewAt(int position) {
-        lastClicked = position;
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.list_widget_item);
-        views.setTextViewText(R.id.widget_textView, Singleton.getInstance().getItemList(context).get(position).text);
+        //TODO - don't know if this is even safe
+        if (TaskDispatcher.getInstance().getChecklistItems(context) != null) {
+            lastClicked = position;
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.list_widget_item);
+            views.setTextViewText(R.id.widget_textView,
+                    TaskDispatcher.getInstance().getChecklistItems(context).get(position).text);
 
-        if (Singleton.getInstance().getItemList(context).get(position).isChecked) {
-            views.setInt(R.id.widget_imageButton, "setImageResource", R.drawable.checkmark);
-            views.setTextColor(R.id.widget_textView, Color.GRAY);
+            //TODO - should cache the list instead
+            if (TaskDispatcher.getInstance().getChecklistItems(context).get(position).isChecked) {
+                views.setInt(R.id.widget_imageButton, "setImageResource", R.drawable.checkmark);
+                views.setTextColor(R.id.widget_textView, Color.GRAY);
+            } else {
+                views.setInt(R.id.widget_imageButton, "setImageResource", R.drawable.checkmark_empty);
+                views.setTextColor(R.id.widget_textView, Color.parseColor("#323232"));
+            }
+
+            Intent fillInIntent = new Intent();
+            fillInIntent.putExtra(ListWidget.EXTRA_ITEM, position);
+            views.setOnClickFillInIntent(R.id.widget_imageButton, fillInIntent);
+
+            Intent launchApp = new Intent();
+            launchApp.putExtra(ListWidget.EXTRA_ITEM, -1);
+            views.setOnClickFillInIntent(R.id.widget_textView, launchApp);
+
+            return views;
         } else {
-            views.setInt(R.id.widget_imageButton, "setImageResource", R.drawable.checkmark_empty);
-            views.setTextColor(R.id.widget_textView, Color.parseColor("#323232"));
+            return null;
         }
-
-        Intent fillInIntent = new Intent();
-        fillInIntent.putExtra(ListWidget.EXTRA_ITEM, position);
-        views.setOnClickFillInIntent(R.id.widget_imageButton, fillInIntent);
-
-        Intent launchApp = new Intent();
-        launchApp.putExtra(ListWidget.EXTRA_ITEM, -1);
-        views.setOnClickFillInIntent(R.id.widget_textView, launchApp);
-
-        return views;
     }
 
     @Override

@@ -14,17 +14,19 @@ import android.widget.Toast;
 
 //DONE - add divider to last item in widget list
 //DONE - change curve radius of widget list
-//TODO - add settings for transparency, color, add position (top or bot), text size
+//DONE - improve look of widget border
 //DONE - reduce checkmark size of widget list
+//DONE - dull out checked widget and list items
+
+//TODO - add settings for transparency, color, add position (top or bot), text size
 //TODO - drag to delete items
 //TODO - make icons in main activity look good (add and delete icons)
-//DONE - dull out checked widget and list items
 //TODO - update checkmark sprite
-//DONE - improve look of widget border
 //TODO - update widget preview image
 //TODO - add custom app icon
 //TODO - cleanup old code and imports
 //TODO - make clickable widget area better
+//TODO - don't force this to be on the main thread
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,9 +40,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //ImageView iv;
-
-
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,15 +52,15 @@ public class MainActivity extends AppCompatActivity {
         fab_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                TaskDispatcher.getInstance().removeCheckedItems(getApplicationContext());
                 Toast.makeText(getApplicationContext(),
-                        Singleton.getInstance().deleteChecked(getApplicationContext()) + " items deleted.",
+                        "unknown # of" + " items deleted.",
                         Toast.LENGTH_SHORT).show();
-                Singleton.getInstance().updateWidgetView(getApplicationContext());
-                adapter.notifyDataSetChanged();
+                //adapter.notifyDataSetChanged();
             }
         });
 
-        initList();
+        initRecyclerView();
     }
 
     @Override
@@ -91,20 +90,25 @@ public class MainActivity extends AppCompatActivity {
         //return super.onOptionsItemSelected(item);
     }
 
-    private void initList() {
-        initRecyclerView();
-    }
-
     private void initRecyclerView() {
         recyclerView = findViewById(R.id.recyler_view);
         adapter = new RecyclerViewAdapter(this, recyclerView);
+        TaskDispatcher.getInstance().setAdapter(adapter);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
         adapter.notifyDataSetChanged();
+    }
+
+
+    @Override
+    public void onDestroy() {
+        TaskDispatcher.getInstance().setAdapter(null);
+        super.onDestroy();
     }
 }

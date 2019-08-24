@@ -3,9 +3,11 @@ package com.osmanthus.swiftlist;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
@@ -14,6 +16,16 @@ import android.widget.RemoteViews;
 public class ListWidget extends AppWidgetProvider {
     public static final String CHECK_ACTION = "com.osmanthus.simplelist.CHECK_ACTION";
     public static final String EXTRA_ITEM = "com.osmanthus.simplelist.EXTRA_ITEM";
+
+    public static void updateWidgetView(final Context context) {
+        Log.d("BOOTY", "update widget view called");
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        ComponentName componentName = new ComponentName(context, ListWidget.class);
+        //TODO - would be nice to not have to fetch appWidgetIds every single time
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list);
+        Log.d("BOOTY", "update widget view finished");
+    }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -37,7 +49,7 @@ public class ListWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_layout, launchAppIntent);
 
         //views.setInt(R.id.widget_layout, "setBackgroundColor", Color.parseColor("#80ffffff"));
-        views.setInt(R.id.widget_bg, "setImageAlpha", 0);
+        //views.setInt(R.id.widget_bg, "setImageAlpha", 0);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
@@ -74,14 +86,12 @@ public class ListWidget extends AppWidgetProvider {
                 launchApp.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(launchApp);
             } else {
-                ChecklistItem changed = Singleton.getInstance().getItemList(context).get(viewIndex);
+                //TODO - use cached list instead of accessing singleton
+                ChecklistItem toChange = TaskDispatcher.getInstance().getChecklistItems(context).get(viewIndex);
+                ChecklistItem changed = new ChecklistItem(toChange);
                 changed.isChecked = !changed.isChecked;
 
-                Singleton.getInstance().databaseUpdate(context, viewIndex);
-                Singleton.getInstance().updateWidgetView(context);
-
-                //TODO - whenever the widget changes the database, have a boolean "isChanged" in the singleton
-                // that the mainActivity reads on resuming
+                TaskDispatcher.getInstance().updateItem(context, changed, viewIndex);
             }
         }
     }
