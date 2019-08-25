@@ -7,7 +7,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
@@ -18,13 +17,11 @@ public class ListWidget extends AppWidgetProvider {
     public static final String EXTRA_ITEM = "com.osmanthus.simplelist.EXTRA_ITEM";
 
     public static void updateWidgetView(final Context context) {
-        Log.d("BOOTY", "update widget view called");
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         ComponentName componentName = new ComponentName(context, ListWidget.class);
         //TODO - would be nice to not have to fetch appWidgetIds every single time
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
         appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list);
-        Log.d("BOOTY", "update widget view finished");
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,

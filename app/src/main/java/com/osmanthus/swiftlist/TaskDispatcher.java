@@ -1,10 +1,8 @@
 package com.osmanthus.swiftlist;
 
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.util.Log;
-import android.widget.ListView;
+import android.os.Handler;
+import android.os.Message;
 
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +12,12 @@ import java.util.concurrent.Executors;
 
 public class TaskDispatcher {
 
+    public static final int UPDATE_ITEM = 0;
+    public static final int INSERT_ITEM = 1;
+    public static final int REMOVE_ITEM = 2;
+    public static final int SWAP_ITEM = 3;
+    public static final int DATA_CHANGED = 4;
+
     private static final TaskDispatcher ourInstance = new TaskDispatcher();
 
     public static TaskDispatcher getInstance() {
@@ -22,7 +26,7 @@ public class TaskDispatcher {
 
     private ExecutorService manager;
     private List<ChecklistItem> checklistItems;
-    private RecyclerViewAdapter adapter;
+    private static Handler externalHandler;
 
     private TaskDispatcher() {
         manager = Executors.newSingleThreadExecutor();
@@ -43,8 +47,10 @@ public class TaskDispatcher {
                 @Override
                 public void run() {
                     verifyChecklistDatabase(context);
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
+                    if (externalHandler != null) {
+                        Message msg = new Message();
+                        msg.what = DATA_CHANGED;
+                        externalHandler.sendMessage(msg);
                     }
                     updateWidgetView(context);
                 }
@@ -60,8 +66,11 @@ public class TaskDispatcher {
                 verifyChecklistDatabase(context);
                 ChecklistDatabase.getInstance(context).getChecklistDao().insert(item);
                 checklistItems.add(pos, item);
-                if (adapter != null) {
-                    adapter.notifyItemChanged(pos);
+                if (externalHandler != null) {
+                    Message msg = new Message();
+                    msg.what = INSERT_ITEM;
+                    msg.arg1 = pos;
+                    externalHandler.sendMessage(msg);
                 }
                 updateWidgetView(context);
             }
@@ -69,31 +78,23 @@ public class TaskDispatcher {
     }
 
     public void updateItem(final Context context, final ChecklistItem item, final int pos) {
-        Log.d("BOOTY", "inside updateItem");
         manager.submit(new Callable<Integer>() {
             @Override
             public Integer call() {
-                Log.d("BOOTY", "thread now running updateItem");
                 verifyChecklistDatabase(context);
-                Log.d("BOOTY", "database verified");
                 ChecklistDatabase.getInstance(context).getChecklistDao().update(item);
-                Log.d("BOOTY", "database updated");
                 checklistItems.set(pos, item);
-                Log.d("BOOTY", "checklist updated");
-                /*
-                if (adapter != null) {
-                    adapter.notifyItemChanged(pos);
-                    Log.d("BOOTY", "adapter notified");
+                if (externalHandler != null) {
+                    Message msg = new Message();
+                    msg.what = UPDATE_ITEM;
+                    msg.arg1 = pos;
+                    externalHandler.sendMessage(msg);
                 }
-                */
-                Log.d("BOOTY", "calling updateWidgetView");
                 updateWidgetView(context);
-                Log.d("BOOTY", "returned from updateWidgetView");
 
                 return 0;
             }
         });
-        Log.d("BOOTY", "leaving updateItem");
     }
 
     public void removeCheckedItems(final Context context) {
@@ -113,12 +114,17 @@ public class TaskDispatcher {
                         totalDeleted++;
                         ChecklistDatabase.getInstance(context).getChecklistDao().delete(tempItem);
                         checklistItems.remove(i);
-                        if (adapter != null) {
-                            adapter.notifyItemRemoved(i);
-                        }
+                        //TODO - should keep track of all deleted then send them all to adapter
+                        //at once at the end
                     } else {
                         i++;
                     }
+                }
+                if (externalHandler != null) {
+                    Message msg = new Message();
+                    msg.what = DATA_CHANGED;
+                    //msg.arg1 = i;
+                    externalHandler.sendMessage(msg);
                 }
                 updateWidgetView(context);
             }
@@ -137,13 +143,19 @@ public class TaskDispatcher {
                 ChecklistDatabase.getInstance(context).getChecklistDao().update(cItem2);
                 ChecklistDatabase.getInstance(context).getChecklistDao().update(cItem1);
                 Collections.swap(checklistItems, index1, index2);
-                adapter.notifyItemMoved(index1, index2);
+                if (externalHandler != null) {
+                    Message msg = new Message();
+                    msg.what = SWAP_ITEM;
+                    msg.arg1 = index1;
+                    msg.arg2 = index2;
+                    externalHandler.sendMessage(msg);
+                }
                 updateWidgetView(context);
             }
         });
     }
 
-    public void setAdapter(RecyclerViewAdapter adapter) {
-        this.adapter = adapter;
+    public void setExternalHandler(Handler handler) {
+        externalHandler = handler;
     }
 }

@@ -2,6 +2,8 @@ package com.osmanthus.swiftlist;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Adapter;
 import android.widget.Toast;
 
 //DONE - add divider to last item in widget list
@@ -32,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerViewAdapter adapter;
     private RecyclerView recyclerView;
+    private static Handler adapterHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,22 +97,58 @@ public class MainActivity extends AppCompatActivity {
     private void initRecyclerView() {
         recyclerView = findViewById(R.id.recyler_view);
         adapter = new RecyclerViewAdapter(this, recyclerView);
-        TaskDispatcher.getInstance().setAdapter(adapter);
         recyclerView.setAdapter(adapter);
+
+        adapterHandler = new AdapterHandler(adapter);
+        TaskDispatcher.getInstance().setExternalHandler(adapterHandler);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-
+    /*
     @Override
     public void onResume() {
         super.onResume();
         adapter.notifyDataSetChanged();
     }
-
+    */
 
     @Override
     public void onDestroy() {
-        TaskDispatcher.getInstance().setAdapter(null);
+        TaskDispatcher.getInstance().setExternalHandler(null);
         super.onDestroy();
+    }
+
+    static class AdapterHandler extends Handler {
+        private RecyclerViewAdapter adapter;
+
+        AdapterHandler(RecyclerViewAdapter adapter) {
+            this.adapter = adapter;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case TaskDispatcher.UPDATE_ITEM:
+                    adapter.notifyItemChanged(msg.arg1);
+                    break;
+                case TaskDispatcher.INSERT_ITEM:
+                    adapter.notifyItemInserted(msg.arg1);
+                    break;
+                case TaskDispatcher.REMOVE_ITEM:
+                    adapter.notifyItemRemoved(msg.arg1);
+                    break;
+                case TaskDispatcher.DATA_CHANGED:
+                    adapter.notifyDataSetChanged();
+                    break;
+                case TaskDispatcher.SWAP_ITEM:
+                    adapter.notifyItemMoved(msg.arg1, msg.arg2);
+                    break;
+                default:
+                    //Shouldn't happen
+                    break;
+            }
+            super.handleMessage(msg);
+        }
     }
 }

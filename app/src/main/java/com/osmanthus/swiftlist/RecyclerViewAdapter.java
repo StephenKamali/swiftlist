@@ -7,8 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.Layout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -81,9 +79,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     editedItem.isChecked = !editedItem.isChecked;
                     //TODO - this seems kinda messy/ inefficient
                     viewHolder.text.setTextColor(editedItem.isChecked ? Color.GRAY : Color.parseColor("#323232"));
-                    Log.d("BOOTY", "checkbox clicked");
                     TaskDispatcher.getInstance().updateItem(context, editedItem, i);
-                    Log.d("BOOTY", "finished dispatching task");
                 }
             });
         } else {
