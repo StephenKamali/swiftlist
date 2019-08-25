@@ -22,7 +22,8 @@
         android:dividerHeight="1px"
         android:footerDividersEnabled="true"
         android:headerDividersEnabled="true"
-        android:paddingBottom="2dp" />
+        android:paddingBottom="2dp"
+        android:scrollbars="none" />
 
 
 </RelativeLayout>

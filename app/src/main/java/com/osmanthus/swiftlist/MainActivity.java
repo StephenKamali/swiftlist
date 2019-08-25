@@ -20,6 +20,8 @@ import android.widget.Toast;
 //DONE - improve look of widget border
 //DONE - reduce checkmark size of widget list
 //DONE - dull out checked widget and list items
+//DONE - don't force this to be on the main thread
+//DONE - cleanup old code and imports
 
 //TODO - add settings for transparency, color, add position (top or bot), text size
 //TODO - drag to delete items
@@ -27,9 +29,8 @@ import android.widget.Toast;
 //TODO - update checkmark sprite
 //TODO - update widget preview image
 //TODO - add custom app icon
-//TODO - cleanup old code and imports
 //TODO - make clickable widget area better
-//TODO - don't force this to be on the main thread
+
 
 public class MainActivity extends AppCompatActivity {
 

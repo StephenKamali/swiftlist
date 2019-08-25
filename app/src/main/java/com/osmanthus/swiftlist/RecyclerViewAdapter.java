@@ -30,7 +30,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         layoutInflater = LayoutInflater.from(context);
 
         // Set up objects needed for dragging list items
-        DragController dragController = new DragController(context, this);
+        DragController dragController = new DragController(context);
         itemTouchHelper = new ItemTouchHelper(dragController);
         itemTouchHelper.attachToRecyclerView(recyclerView);
     }

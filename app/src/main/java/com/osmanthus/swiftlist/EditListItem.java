@@ -40,13 +40,6 @@ public class EditListItem extends AppCompatActivity {
                 if (textView.getText().toString().equals("")) {
                     finish();
                 } else {
-                    //Save the edit
-                    /*
-                    Intent data = new Intent();
-                    data.setData(Uri.parse(textView.getText().toString()));
-                    setResult(RESULT_OK, data);
-                    finish();
-                    */
                     saveEdit(textView.getText().toString(), editIndex);
                 }
             }
@@ -55,7 +48,6 @@ public class EditListItem extends AppCompatActivity {
 
     private void saveEdit(String text, int index) {
         int size = TaskDispatcher.getInstance().getChecklistItems(this).size();
-        //TODO - cleanup what is needed to make a new checklist item (don't need to pass size twice, false can be set by default)
         if (!isEdit) {
             ChecklistItem newItem = new ChecklistItem(size, text, false);
             TaskDispatcher.getInstance().addItem(this, newItem, size);

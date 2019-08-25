@@ -8,12 +8,10 @@ import android.support.v7.widget.helper.ItemTouchHelper.Callback;
 
 public class DragController extends Callback {
 
-    private RecyclerViewAdapter adapter;
     private Context context;
 
-    public DragController(Context context, RecyclerViewAdapter adapter) {
+    public DragController(Context context) {
         this.context = context;
-        this.adapter = adapter;
     }
 
     @Override
@@ -32,4 +30,18 @@ public class DragController extends Callback {
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
 
     }
+
+    //TODO - customize the feel of scroll drags
+    //Also note, negative val = scroll up, positive val = scroll down
+    /*
+    @Override
+    public int interpolateOutOfBoundsScroll(RecyclerView recyclerView,
+                                            int viewSize,
+                                            int viewSizeOutOfBounds,
+                                            int totalSize,
+                                            long msSinceStartScroll) {
+
+        return -100;
+    }
+    */
 }
