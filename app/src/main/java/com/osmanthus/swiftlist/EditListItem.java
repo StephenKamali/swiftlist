@@ -49,8 +49,8 @@ public class EditListItem extends AppCompatActivity {
     private void saveEdit(String text, int index) {
         int size = TaskDispatcher.getInstance().getChecklistItems(this).size();
         if (!isEdit) {
-            ChecklistItem newItem = new ChecklistItem(size, text, false);
-            TaskDispatcher.getInstance().addItem(this, newItem, size);
+            ChecklistItem newItem = new ChecklistItem(0, size, text, false);
+            TaskDispatcher.getInstance().addItem(this, newItem);
         } else {
             ChecklistItem toUpdate = TaskDispatcher.getInstance().getChecklistItems(this).get(index);
             ChecklistItem updatedItem = new ChecklistItem(toUpdate);

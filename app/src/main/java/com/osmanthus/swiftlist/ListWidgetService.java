@@ -3,8 +3,12 @@ package com.osmanthus.swiftlist;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.LightingColorFilter;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
+
+import java.util.List;
 
 public class ListWidgetService extends RemoteViewsService {
     @Override
@@ -17,6 +21,7 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     private Context context;
     private static int lastClicked;
+    public static List<ChecklistItem> cache;
 
     public ListWidgetFactory(Context context, Intent intent) {
         this.context = context;
@@ -24,6 +29,7 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public void onCreate() {
+        Log.d("BOOTY", "widget factory created");
     }
 
     @Override
@@ -32,15 +38,19 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public void onDestroy() {
+        Log.d("BOOTY", "widget factory destroyed");
     }
 
     @Override
     public int getCount() {
         //TODO - should probably cache the list here too
-        if (TaskDispatcher.getInstance().getChecklistItems(context) != null)
+        if (TaskDispatcher.getInstance().getChecklistItems(context) != null) {
+            Log.d("BOOTY", "list has been cached in widget adapter");
+            cache = TaskDispatcher.getInstance().getChecklistItems(context);
             return TaskDispatcher.getInstance().getChecklistItems(context).size();
-        else
+        } else {
             return 0;
+        }
     }
 
     @Override

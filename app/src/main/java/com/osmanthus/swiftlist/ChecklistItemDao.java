@@ -18,11 +18,17 @@ public interface ChecklistItemDao {
     List<ChecklistItem> getAllChecklistItemsByPosition();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(ChecklistItem item);
+    long insert(ChecklistItem item);
 
     @Update
     void update(ChecklistItem item);
 
+    @Update
+    void updateList(List<ChecklistItem> items);
+
     @Delete
     void delete(ChecklistItem item);
+
+    @Delete
+    void deleteList(List<ChecklistItem> items);
 }

@@ -1,5 +1,6 @@
 package com.osmanthus.swiftlist;
 
+import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +26,7 @@ import android.widget.Toast;
 
 //TODO - add settings for transparency, color, add position (top or bot), text size
 //TODO - drag to delete items
+//TODO - add undo toast for deleting items
 //TODO - make icons in main activity look good (add and delete icons)
 //TODO - update checkmark sprite
 //TODO - update widget preview image
@@ -58,10 +60,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 TaskDispatcher.getInstance().removeCheckedItems(getApplicationContext());
-                Toast.makeText(getApplicationContext(),
-                        "unknown # of" + " items deleted.",
-                        Toast.LENGTH_SHORT).show();
-                //adapter.notifyDataSetChanged();
             }
         });
 
@@ -100,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         adapter = new RecyclerViewAdapter(this, recyclerView);
         recyclerView.setAdapter(adapter);
 
-        adapterHandler = new AdapterHandler(adapter);
+        adapterHandler = new AdapterHandler(getApplication(), adapter);
         TaskDispatcher.getInstance().setExternalHandler(adapterHandler);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -122,8 +120,10 @@ public class MainActivity extends AppCompatActivity {
 
     static class AdapterHandler extends Handler {
         private RecyclerViewAdapter adapter;
+        private Application application;
 
-        AdapterHandler(RecyclerViewAdapter adapter) {
+        AdapterHandler(Application application, RecyclerViewAdapter adapter) {
+            this.application = application;
             this.adapter = adapter;
         }
 
@@ -137,13 +137,23 @@ public class MainActivity extends AppCompatActivity {
                     adapter.notifyItemInserted(msg.arg1);
                     break;
                 case TaskDispatcher.REMOVE_ITEM:
-                    adapter.notifyItemRemoved(msg.arg1);
+                    //TODO - would like to eventually remove items more efficiently
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(application.getApplicationContext(),
+                            msg.arg1 + " items deleted.",
+                            Toast.LENGTH_SHORT).show();
                     break;
                 case TaskDispatcher.DATA_CHANGED:
                     adapter.notifyDataSetChanged();
                     break;
                 case TaskDispatcher.SWAP_ITEM:
                     adapter.notifyItemMoved(msg.arg1, msg.arg2);
+                    ChecklistItem test1 = TaskDispatcher.getInstance().getChecklistItems(application.getApplicationContext()).get(msg.arg1);
+                    ChecklistItem test2 = TaskDispatcher.getInstance().getChecklistItems(application.getApplicationContext()).get(msg.arg2);
+                    adapter.notifyItemChanged(msg.arg1, test2);
+                    adapter.notifyItemChanged(msg.arg2, test1);
+
+                    //adapter.notifyDataSetChanged();
                     break;
                 default:
                     //Shouldn't happen

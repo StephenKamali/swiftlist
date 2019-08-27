@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
@@ -84,10 +85,13 @@ public class ListWidget extends AppWidgetProvider {
                 context.startActivity(launchApp);
             } else {
                 //TODO - use cached list instead of accessing singleton
-                ChecklistItem toChange = TaskDispatcher.getInstance().getChecklistItems(context).get(viewIndex);
-                ChecklistItem changed = new ChecklistItem(toChange);
+                //TaskDispatcher.getInstance().ping();
+                //ChecklistItem toChange = TaskDispatcher.getInstance().getChecklistItems(context).get(viewIndex);
+                ChecklistItem toChange = ListWidgetFactory.cache.get(viewIndex);
+                ChecklistItem changed = new ChecklistItem(toChange.id, toChange.position, toChange.text, toChange.isChecked);
                 changed.isChecked = !changed.isChecked;
-
+                //TODO - use a pending intent to stop thread from being killed when broadcast
+                //receiver is garbage collected
                 TaskDispatcher.getInstance().updateItem(context, changed, viewIndex);
             }
         }
