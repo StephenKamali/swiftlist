@@ -25,6 +25,5 @@ public class ChecklistItem {
 
     public ChecklistItem(ChecklistItem item) {
         this(item.id, item.position, item.text, item.isChecked);
-        Log.d("BOOTY", "Creating new item w/ id of " + item.id);
     }
 }

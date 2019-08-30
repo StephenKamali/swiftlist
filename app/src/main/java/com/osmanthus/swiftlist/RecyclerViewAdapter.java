@@ -48,7 +48,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public void onBindViewHolder(@NonNull final ViewHolder viewHolder, final int i) {
         //TODO - cache list instead of this badness
         //if (checklistItems != null) {
-        Log.d("BOOTY", "onBindViewHolder called");
         if (TaskDispatcher.getInstance().getChecklistItems(context) != null) {
 
             //Get item and set view holder elements accordingly
