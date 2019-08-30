@@ -32,7 +32,7 @@
         android:layout_marginBottom="4dp"
         android:gravity="center_vertical"
         android:maxLines="1"
-        android:text="yagayeeeeeeeeeeeeeeteeeeeeeeeeeeeeeeeteeeeeeeeeeeeeeeeeeeeeeeeeeet"
+        android:text="This is a test message."
         android:textSize="16sp" />
 
 </LinearLayout>

@@ -21,7 +21,6 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     private Context context;
     private static int lastClicked;
-    public static List<ChecklistItem> cache;
 
     public ListWidgetFactory(Context context, Intent intent) {
         this.context = context;
@@ -29,7 +28,6 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public void onCreate() {
-        Log.d("BOOTY", "widget factory created");
     }
 
     @Override
@@ -38,15 +36,12 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public void onDestroy() {
-        Log.d("BOOTY", "widget factory destroyed");
     }
 
     @Override
     public int getCount() {
         //TODO - should probably cache the list here too
         if (TaskDispatcher.getInstance().getChecklistItems(context) != null) {
-            Log.d("BOOTY", "list has been cached in widget adapter");
-            cache = TaskDispatcher.getInstance().getChecklistItems(context);
             return TaskDispatcher.getInstance().getChecklistItems(context).size();
         } else {
             return 0;
@@ -59,11 +54,13 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
         if (TaskDispatcher.getInstance().getChecklistItems(context) != null) {
             lastClicked = position;
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.list_widget_item);
-            views.setTextViewText(R.id.widget_textView,
-                    TaskDispatcher.getInstance().getChecklistItems(context).get(position).text);
+
+            ChecklistItem item = TaskDispatcher.getInstance().getChecklistItems(context).get(position);
+
+            views.setTextViewText(R.id.widget_textView, item.text);
 
             //TODO - should cache the list instead
-            if (TaskDispatcher.getInstance().getChecklistItems(context).get(position).isChecked) {
+            if (item.isChecked) {
                 views.setInt(R.id.widget_imageButton, "setImageResource", R.drawable.checkmark);
                 views.setTextColor(R.id.widget_textView, Color.GRAY);
             } else {
@@ -72,11 +69,12 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
             }
 
             Intent fillInIntent = new Intent();
-            fillInIntent.putExtra(ListWidget.EXTRA_ITEM, position);
+            fillInIntent.putExtra(ListWidget.ITEM_ID, item.id);
+            fillInIntent.putExtra(ListWidget.ITEM_POS, position);
             views.setOnClickFillInIntent(R.id.widget_imageButton, fillInIntent);
 
             Intent launchApp = new Intent();
-            launchApp.putExtra(ListWidget.EXTRA_ITEM, -1);
+            launchApp.putExtra(ListWidget.ITEM_ID, -1);
             views.setOnClickFillInIntent(R.id.widget_textView, launchApp);
 
             return views;

@@ -14,16 +14,9 @@ import android.widget.RemoteViews;
  * Implementation of App Widget functionality.
  */
 public class ListWidget extends AppWidgetProvider {
-    public static final String CHECK_ACTION = "com.osmanthus.simplelist.CHECK_ACTION";
-    public static final String EXTRA_ITEM = "com.osmanthus.simplelist.EXTRA_ITEM";
-
-    public static void updateWidgetView(final Context context) {
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        ComponentName componentName = new ComponentName(context, ListWidget.class);
-        //TODO - would be nice to not have to fetch appWidgetIds every single time
-        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
-        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list);
-    }
+    public static final String CHECK_ACTION = "com.osmanthus.swiftlist.CHECK_ACTION";
+    public static final String ITEM_ID = "com.osmanthus.swiftlist.ITEM_ID";
+    public static final String ITEM_POS = "com.osmanthus.swiftlist.ITEM_POS";
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -78,21 +71,17 @@ public class ListWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         if (intent.getAction().equals(CHECK_ACTION)) {
-            int viewIndex = intent.getIntExtra(EXTRA_ITEM, 0);
-            if (viewIndex == -1) {
+            //TODO - error check here to make sure never actually go through with 0
+            long itemID = intent.getLongExtra(ITEM_ID, 0);
+            if (itemID == -1) {
                 Intent launchApp = new Intent(context, MainActivity.class);
                 launchApp.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(launchApp);
             } else {
-                //TODO - use cached list instead of accessing singleton
-                //TaskDispatcher.getInstance().ping();
-                //ChecklistItem toChange = TaskDispatcher.getInstance().getChecklistItems(context).get(viewIndex);
-                ChecklistItem toChange = ListWidgetFactory.cache.get(viewIndex);
-                ChecklistItem changed = new ChecklistItem(toChange.id, toChange.position, toChange.text, toChange.isChecked);
-                changed.isChecked = !changed.isChecked;
-                //TODO - use a pending intent to stop thread from being killed when broadcast
-                //receiver is garbage collected
-                TaskDispatcher.getInstance().updateItem(context, changed, viewIndex);
+                //TODO - add error check to make sure this val is never 0
+                int pos = intent.getIntExtra(ITEM_POS, 0);
+                PendingResult pendingResult = goAsync();
+                TaskDispatcher.getInstance().toggleItemChecked(context, pendingResult, pos, itemID);
             }
         }
     }

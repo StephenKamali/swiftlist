@@ -33,6 +33,14 @@ import android.widget.Toast;
 //TODO - add custom app icon
 //TODO - make clickable widget area better
 
+/*
+Could use position as primary key
+
+When editing would have to set the position to something like 0, then change the
+other item's position, then change it back
+
+This would allow storing items in a hashmap yet still be useful for RecyclerAdapter
+ */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,14 +55,18 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //Add item
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent editListItem = new Intent(view.getContext(), EditListItem.class);
-                startActivityForResult(editListItem, 0);
+                //startActivityForResult(editListItem, 0);
+                startActivity(editListItem);
             }
         });
+
+        //Delete item(s)
         FloatingActionButton fab_delete = findViewById(R.id.fab_delete);
         fab_delete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,13 +116,11 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    /*
     @Override
-    public void onResume() {
-        super.onResume();
-        adapter.notifyDataSetChanged();
+    public void onPause() {
+        TaskDispatcher.updateWidgetView(this);
+        super.onPause();
     }
-    */
 
     @Override
     public void onDestroy() {

@@ -18,11 +18,12 @@ public class DragController extends Callback {
     @Override
     public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
         return makeFlag(ItemTouchHelper.ACTION_STATE_DRAG,
-                ItemTouchHelper.DOWN | ItemTouchHelper.UP | ItemTouchHelper.START | ItemTouchHelper.END);
+                ItemTouchHelper.DOWN | ItemTouchHelper.UP);
     }
 
     @Override
     public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder viewHolder1) {
+        //recyclerView.getAdapter();
         TaskDispatcher.getInstance().swapItems(context, viewHolder.getAdapterPosition(), viewHolder1.getAdapterPosition());
         return true;
     }

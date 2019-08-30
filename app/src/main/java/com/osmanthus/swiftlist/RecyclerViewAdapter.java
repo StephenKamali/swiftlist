@@ -48,18 +48,27 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public void onBindViewHolder(@NonNull final ViewHolder viewHolder, final int i) {
         //TODO - cache list instead of this badness
         //if (checklistItems != null) {
+        Log.d("BOOTY", "onBindViewHolder called");
         if (TaskDispatcher.getInstance().getChecklistItems(context) != null) {
+
+            //Get item and set view holder elements accordingly
             final ChecklistItem item = TaskDispatcher.getInstance().getChecklistItems(context).get(i);
             viewHolder.text.setText(item.text);
             viewHolder.checkBox.setChecked(item.isChecked);
             //TODO - same as checkBox listener below, seems kinda inefficient
             viewHolder.text.setTextColor(item.isChecked ? Color.GRAY : Color.parseColor("#323232"));
+
+            //Store the item's ID as a tag for later reference
+            viewHolder.parentLayout.setTag(R.id.parent_layout, new Long(item.id));
+
+            //When the user clicks on an item, it should bring them to the edit screen
             viewHolder.parentLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent editItem = new Intent(context, EditListItem.class);
                     editItem.putExtra(EditListItem.TO_EDIT, item.text);
-                    editItem.putExtra(EditListItem.TO_EDIT_INDEX, item.position);
+                    editItem.putExtra(EditListItem.TO_EDIT_ID, item.id);
+                    editItem.putExtra(EditListItem.TO_EDIT_POS, i);
                     context.startActivity(editItem);
                 }
             });
@@ -76,12 +85,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             viewHolder.checkBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ChecklistItem editedItem = new ChecklistItem(item);
-                    editedItem.isChecked = !editedItem.isChecked;
                     //TODO - this seems kinda messy/ inefficient
-                    Log.d("BOOTY", "id = " + editedItem.id);
-                    viewHolder.text.setTextColor(editedItem.isChecked ? Color.GRAY : Color.parseColor("#323232"));
-                    TaskDispatcher.getInstance().updateItem(context, editedItem, i);
+                    boolean isChecked = viewHolder.checkBox.isChecked();
+                    viewHolder.text.setTextColor(isChecked ? Color.GRAY : Color.parseColor("#323232"));
+                    TaskDispatcher.getInstance().updateItemChecked(context, i, item.id, isChecked);
                 }
             });
         } else {

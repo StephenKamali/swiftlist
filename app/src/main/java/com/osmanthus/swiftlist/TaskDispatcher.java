@@ -1,7 +1,10 @@
 package com.osmanthus.swiftlist;
 
+import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -35,8 +38,12 @@ public class TaskDispatcher {
         manager = Executors.newSingleThreadExecutor();
     }
 
-    private void updateWidgetView(final Context context) {
-        ListWidget.updateWidgetView(context);
+    public static void updateWidgetView(final Context context) {
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        ComponentName componentName = new ComponentName(context, ListWidget.class);
+        //TODO - would be nice to not have to fetch appWidgetIds every single time
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_list);
     }
 
     private void verifyChecklistDatabase(final Context context) {
@@ -66,66 +73,92 @@ public class TaskDispatcher {
         return checklistItems;
     }
 
-    public void addItem(final Context context, final ChecklistItem item) {
-        item.position = checklistItems.size();
-        checklistItems.add(item);
+    public void addItem(final Context context, final String itemText) {
 
-        //Must copy the item to submit to database, because the item
-        //in the list could be changed in the meantime
-        final ChecklistItem itemCopy = new ChecklistItem(item);
+        //TODO - disable add button before taskdispatcher has tried to get the info from database
+        //TODO - disable delete button when list is empty
+        final ChecklistItem toInsert;
+        toInsert = new ChecklistItem(0, checklistItems.size(), itemText, false);
+        checklistItems.add(toInsert);
 
         if (externalHandler != null) {
             Message msg = new Message();
             msg.what = INSERT_ITEM;
-            msg.arg1 = item.position;
+            msg.arg1 = toInsert.position;
             externalHandler.sendMessage(msg);
         }
-        updateWidgetView(context);
 
         manager.submit(new Runnable() {
             @Override
             public void run() {
-                long id = ChecklistDatabase.getInstance(context).getChecklistDao().insert(itemCopy);
-                item.id = id;
+                long id = ChecklistDatabase.getInstance(context).getChecklistDao().insert(toInsert);
+                toInsert.id = id;
             }
         });
     }
 
-    public void updateItem(final Context context, final ChecklistItem item, final int pos) {
-        //TODO - instead of passing a new object to this method, allow specific params
-        //to be passed ( so don't need to instantiate entirely new obj)
-        checklistItems.set(pos, item);
-
-        final ChecklistItem itemCopy = new ChecklistItem(item);
+    public void updateItemText(final Context context,
+                               int initPos,
+                               final long itemID,
+                               final String itemText) {
+        checklistItems.get(initPos).text = itemText;
 
         if (externalHandler != null) {
             Message msg = new Message();
             msg.what = UPDATE_ITEM;
-            msg.arg1 = pos;
+            msg.arg1 = initPos;
             externalHandler.sendMessage(msg);
         }
-        updateWidgetView(context);
 
         manager.submit(new Runnable() {
             @Override
             public void run() {
-                ChecklistDatabase.getInstance(context).getChecklistDao().update(itemCopy);
+                ChecklistDatabase.getInstance(context).getChecklistDao().setItemText(itemID, itemText);
             }
         });
     }
 
-    public void widgetUpdateItem(final Context context, final BroadcastReceiver.PendingResult pendingResult, final int pos) {
+    public void updateItemChecked(final Context context,
+                                  int initPos,
+                                  final long itemID,
+                                  final boolean isChecked) {
+        checklistItems.get(initPos).isChecked = isChecked;
+
         manager.submit(new Runnable() {
             @Override
             public void run() {
-                verifyChecklistDatabase(context);
+                ChecklistDatabase.getInstance(context).getChecklistDao().setItemChecked(itemID,
+                        isChecked ? 1 : 0);
+            }
+        });
+    }
 
-                if (externalHandler != null) {
-                    Message msg = new Message();
-                    msg.what = UPDATE_ITEM;
-                    msg.arg1 = pos;
-                    externalHandler.sendMessage(msg);
-                }
+    //Updates an item's checked status without being passed the new value
+    //Slightly slower (I think), but less info needed (for widget use)
+    public void toggleItemChecked(final Context context,
+                                  final BroadcastReceiver.PendingResult pendingResult,
+                                  int initPos,
+                                  final long itemID) {
+        //TODO - what if main activity gets closed after this is checked, but before item is set?
+        //Could result in a null pointer exception. Should use a JobScheduler instead so that
+        //TaskDispatcher can outlive the activity (if it still has pending jobs, that is)
+        if (checklistItems != null) {
+            checklistItems.get(initPos).isChecked = !checklistItems.get(initPos).isChecked;
+
+            if (externalHandler != null) {
+                Message msg = new Message();
+                msg.what = UPDATE_ITEM;
+                msg.arg1 = initPos;
+                externalHandler.sendMessage(msg);
+            }
+        }
+
+        manager.submit(new Runnable() {
+            @Override
+            public void run() {
+                boolean isChecked = !ChecklistDatabase.getInstance(context).getChecklistDao().getChecked(itemID);
+                ChecklistDatabase.getInstance(context).getChecklistDao().setItemChecked(itemID,
+                        isChecked ? 1 : 0);
                 updateWidgetView(context);
                 pendingResult.finish();
             }
@@ -171,8 +204,6 @@ public class TaskDispatcher {
             msg.arg1 = totalDeleted;
             externalHandler.sendMessage(msg);
         }
-        updateWidgetView(context);
-
         manager.submit(new Runnable() {
             @Override
             public void run() {
@@ -183,15 +214,16 @@ public class TaskDispatcher {
         });
     }
 
+    //TODO - haven't converted this func
     public void swapItems(final Context context, final int index1, final int index2) {
-        ChecklistItem cItem1 = checklistItems.get(index1);
-        ChecklistItem cItem2 = checklistItems.get(index2);
+        final ChecklistItem cItem1 = checklistItems.get(index1);
+        final ChecklistItem cItem2 = checklistItems.get(index2);
         cItem1.position = index2;
         cItem2.position = index1;
         Collections.swap(checklistItems, index1, index2);
 
-        final ChecklistItem cItem1Copy = new ChecklistItem(cItem1);
-        final ChecklistItem cItem2Copy = new ChecklistItem(cItem2);
+        //final long item1ID = cItem1.id;
+        //final long item2ID = cItem2.id;
 
         if (externalHandler != null) {
             Message msg = new Message();
@@ -200,13 +232,17 @@ public class TaskDispatcher {
             msg.arg2 = index2;
             externalHandler.sendMessage(msg);
         }
-        updateWidgetView(context);
 
         manager.submit(new Runnable() {
             @Override
             public void run() {
-                ChecklistDatabase.getInstance(context).getChecklistDao().update(cItem1Copy);
-                ChecklistDatabase.getInstance(context).getChecklistDao().update(cItem2Copy);
+                //int pos1 = ChecklistDatabase.getInstance(context).getChecklistDao().getItemPosition(item1ID);
+                //int pos2 = ChecklistDatabase.getInstance(context).getChecklistDao().getItemPosition(item2ID);
+
+                //Using ref to real obj here b/c after adding an element, the id could still be 0
+                //But once at the point of running another task, item is guaranteed to have had its id set
+                ChecklistDatabase.getInstance(context).getChecklistDao().setItemPosition(cItem1.id, index2);
+                ChecklistDatabase.getInstance(context).getChecklistDao().setItemPosition(cItem2.id, index1);
             }
         });
     }

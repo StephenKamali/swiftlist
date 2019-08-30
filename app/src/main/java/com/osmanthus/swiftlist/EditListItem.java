@@ -2,6 +2,7 @@ package com.osmanthus.swiftlist;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -10,8 +11,9 @@ import java.util.List;
 
 public class EditListItem extends AppCompatActivity {
 
-    public static final String TO_EDIT = "com.osmanthus.simplelist.TO_EDIT";
-    public static final String TO_EDIT_INDEX = "com.osmanthus.simplelist.TO_EDIT_INDEX";
+    public static final String TO_EDIT = "com.osmanthus.swiftlist.TO_EDIT";
+    public static final String TO_EDIT_ID = "com.osmanthus.swiftlist.TO_EDIT_ID";
+    public static final String TO_EDIT_POS = "com.osmanthus.swiftlist.TO_EDIT_POS";
 
     private TextView textView;
     private Button saveButton;
@@ -25,8 +27,9 @@ public class EditListItem extends AppCompatActivity {
 
         textView = findViewById(R.id.editText);
 
+        //TODO - store intent so don't have to keep getting
         String editText = getIntent().getStringExtra(TO_EDIT);
-        final int editIndex = getIntent().getIntExtra(TO_EDIT_INDEX, 0);
+        final long editID = getIntent().getLongExtra(TO_EDIT_ID, 0);
         if (editText != null) {
             isEdit = true;
             textView.setText(editText);
@@ -40,22 +43,19 @@ public class EditListItem extends AppCompatActivity {
                 if (textView.getText().toString().equals("")) {
                     finish();
                 } else {
-                    saveEdit(textView.getText().toString(), editIndex);
+                    saveEdit(textView.getText().toString(), editID);
                 }
             }
         });
     }
 
-    private void saveEdit(String text, int index) {
-        int size = TaskDispatcher.getInstance().getChecklistItems(this).size();
+    private void saveEdit(String text, long id) {
         if (!isEdit) {
-            ChecklistItem newItem = new ChecklistItem(0, size, text, false);
-            TaskDispatcher.getInstance().addItem(this, newItem);
+            TaskDispatcher.getInstance().addItem(this, text);
         } else {
-            ChecklistItem toUpdate = TaskDispatcher.getInstance().getChecklistItems(this).get(index);
-            ChecklistItem updatedItem = new ChecklistItem(toUpdate);
-            updatedItem.text = text;
-            TaskDispatcher.getInstance().updateItem(this, updatedItem, index);
+            //TODO - add error check to make sure this val is never 0
+            int pos = getIntent().getIntExtra(TO_EDIT_POS, 0);
+            TaskDispatcher.getInstance().updateItemText(this, pos, id, text);
         }
 
         finish();
