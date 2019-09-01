@@ -3,12 +3,8 @@ package com.osmanthus.swiftlist;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.LightingColorFilter;
-import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
-
-import java.util.List;
 
 public class ListWidgetService extends RemoteViewsService {
     @Override
