@@ -74,7 +74,7 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
             views.setOnClickFillInIntent(R.id.widget_imageButton, fillInIntent);
 
             Intent launchApp = new Intent();
-            launchApp.putExtra(ListWidget.ITEM_ID, -1);
+            launchApp.putExtra(ListWidget.ITEM_ID, (long)(-1));
             views.setOnClickFillInIntent(R.id.widget_textView, launchApp);
 
             return views;
