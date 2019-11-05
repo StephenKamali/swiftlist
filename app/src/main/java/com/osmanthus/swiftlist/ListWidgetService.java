@@ -46,7 +46,6 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public RemoteViews getViewAt(int position) {
-        //TODO - don't know if this is even safe
         if (TaskDispatcher.getInstance().getChecklistItems(context) != null) {
             lastClicked = position;
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.list_widget_item);
@@ -81,13 +80,7 @@ class ListWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     @Override
     public RemoteViews getLoadingView() {
-        //TODO - this seems kind of hacky, and it doesn't work when deletions occur
-        /*
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.list_widget_item);
-        views.setTextViewText(R.id.widget_textView, Singleton.getInstance().getItemList(context).get(lastClicked).text);
-
-        return views;
-        */
+        //TODO - can try to do something here to get rid of widget loading message
         return null;
     }
 

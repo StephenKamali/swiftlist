@@ -69,17 +69,19 @@ public class ListWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         if (intent.getAction().equals(CHECK_ACTION)) {
-            //TODO - error check here to make sure never actually go through with 0
             long itemID = intent.getLongExtra(ITEM_ID, 0);
             if (itemID == -1) {
                 Intent launchApp = new Intent(context, MainActivity.class);
                 launchApp.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(launchApp);
-            } else {
-                //TODO - add error check to make sure this val is never 0
+            } else if (itemID > 0){
                 int pos = intent.getIntExtra(ITEM_POS, 0);
                 PendingResult pendingResult = goAsync();
                 TaskDispatcher.getInstance().toggleItemChecked(context, pendingResult, pos, itemID);
+            } else {
+                //itemID should never be less than -1, or equal to 0
+                throw new RuntimeException(this.getClass().getName() +
+                        " onReceive got itemID of " + itemID);
             }
         }
     }

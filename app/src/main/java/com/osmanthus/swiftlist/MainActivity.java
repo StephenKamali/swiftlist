@@ -22,15 +22,16 @@ import android.widget.Toast;
 //DONE - dull out checked widget and list items
 //DONE - don't force this to be on the main thread
 //DONE - cleanup old code and imports
+//DONE - make clickable widget area better
 
 //TODO - add settings for transparency, color, add position (top or bot), text size
+//TODO - add setting for dark mode
 //TODO - drag to delete items
 //TODO - add undo toast for deleting items
 //TODO - make icons in main activity look good (add and delete icons)
 //TODO - update checkmark sprite
 //TODO - update widget preview image
 //TODO - add custom app icon
-//TODO - make clickable widget area better
 
 /*
 Could use position as primary key
@@ -46,6 +47,10 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerViewAdapter adapter;
     private RecyclerView recyclerView;
     private static Handler adapterHandler;
+    private static LinearLayoutManager layoutManager;
+
+    private static FloatingActionButton fabAdd;
+    private static FloatingActionButton fabDelete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,25 +59,37 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //Add item
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        //Add item button
+        fabAdd = findViewById(R.id.fab);
+        fabAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent editListItem = new Intent(view.getContext(), EditListItem.class);
-                //startActivityForResult(editListItem, 0);
                 startActivity(editListItem);
             }
         });
 
-        //Delete item(s)
-        FloatingActionButton fab_delete = findViewById(R.id.fab_delete);
-        fab_delete.setOnClickListener(new View.OnClickListener() {
+        //Delete item(s) button
+        fabDelete = findViewById(R.id.fab_delete);
+        fabDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 TaskDispatcher.getInstance().removeCheckedItems(getApplicationContext());
             }
         });
+
+        //Disable buttons until list is retrieved from database
+        //As far as I understand, onCreate must finish before messages can be handled,
+        //so there shouldn't be any threading problems with this
+        //(messages for the handler are queued on the main thread, and onCreate should be first)
+        /*
+        if (TaskDispatcher.getInstance().getChecklistItems(this) == null) {
+            fabAdd.setAlpha(0.5f);
+            fabDelete.setAlpha(0.5f);
+            fabAdd.setEnabled(false);
+            fabDelete.setEnabled(false);
+        }
+        */
 
         initRecyclerView();
     }
@@ -112,7 +129,9 @@ public class MainActivity extends AppCompatActivity {
         adapterHandler = new AdapterHandler(getApplication(), adapter);
         TaskDispatcher.getInstance().setExternalHandler(adapterHandler);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        layoutManager = new LinearLayoutManager(this);
+        //layoutManager.setStackFromEnd(true); //TODO - do I really need to do this?
+        recyclerView.setLayoutManager(layoutManager);
     }
 
     @Override
@@ -155,12 +174,42 @@ public class MainActivity extends AppCompatActivity {
                 case TaskDispatcher.DATA_CHANGED:
                     adapter.notifyDataSetChanged();
                     break;
+                case TaskDispatcher.DATA_LOADED:
+                    adapter.notifyDataSetChanged();
+                    /*
+                    fabAdd.setAlpha(1.0f);
+                    fabDelete.setAlpha(1.0f);
+                    fabAdd.setEnabled(true);
+                    fabDelete.setEnabled(true);
+                    */
+                    break;
                 case TaskDispatcher.SWAP_ITEM:
+
+                    //Starting from here
+                    int firstPos = layoutManager.findFirstCompletelyVisibleItemPosition();
+                    int offsetTop = 0;
+
+                    if(firstPos >= 0){
+                        View firstView = layoutManager.findViewByPosition(firstPos);
+                        offsetTop = layoutManager.getDecoratedTop(firstView) - layoutManager.getTopDecorationHeight(firstView);
+                    }
+
                     adapter.notifyItemMoved(msg.arg1, msg.arg2);
+
+                    if(firstPos >= 0) {
+                        layoutManager.scrollToPositionWithOffset(firstPos, offsetTop);
+                    }
+                    //and ending here is from
+                    //https://stackoverflow.com/questions/27992427/recyclerview-adapter-notifyitemmoved0-1-scrolls-screen?answertab=votes#tab-top
+
+
+                    //adapter.notifyItemMoved(msg.arg1, msg.arg2);
                     ChecklistItem test1 = TaskDispatcher.getInstance().getChecklistItems(application.getApplicationContext()).get(msg.arg1);
                     ChecklistItem test2 = TaskDispatcher.getInstance().getChecklistItems(application.getApplicationContext()).get(msg.arg2);
                     adapter.notifyItemChanged(msg.arg1, test2);
                     adapter.notifyItemChanged(msg.arg2, test1);
+
+
 
                     //adapter.notifyDataSetChanged();
                     break;

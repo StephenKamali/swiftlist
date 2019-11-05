@@ -1,5 +1,6 @@
 package com.osmanthus.swiftlist;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -14,6 +15,7 @@ public class EditListItem extends AppCompatActivity {
 
     private TextView textView;
     private Button saveButton;
+    private Intent passedIntent;
 
     private boolean isEdit;
 
@@ -24,9 +26,10 @@ public class EditListItem extends AppCompatActivity {
 
         textView = findViewById(R.id.editText);
 
-        //TODO - store intent so don't have to keep getting
-        String editText = getIntent().getStringExtra(TO_EDIT);
-        final long editID = getIntent().getLongExtra(TO_EDIT_ID, 0);
+        passedIntent = getIntent();
+
+        String editText = passedIntent.getStringExtra(TO_EDIT);
+        final long editID = passedIntent.getLongExtra(TO_EDIT_ID, 0);
         if (editText != null) {
             isEdit = true;
             textView.setText(editText);
@@ -50,8 +53,7 @@ public class EditListItem extends AppCompatActivity {
         if (!isEdit) {
             TaskDispatcher.getInstance().addItem(this, text);
         } else {
-            //TODO - add error check to make sure this val is never 0
-            int pos = getIntent().getIntExtra(TO_EDIT_POS, 0);
+            int pos = passedIntent.getIntExtra(TO_EDIT_POS, 0);
             TaskDispatcher.getInstance().updateItemText(this, pos, id, text);
         }
 

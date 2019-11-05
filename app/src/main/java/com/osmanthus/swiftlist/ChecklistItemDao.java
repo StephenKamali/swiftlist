@@ -41,7 +41,7 @@ public interface ChecklistItemDao {
     //ChecklistItem insertItem(String text);
 
     //@Query("SELECT id FROM checklistitem ORDER BY id DESC LIMIT 1")
-    //TODO - could use max(position) since just trying to find last position
+    //could use max(position) since just trying to find last position
     @Query("SELECT COUNT(id) FROM checklistitem")
     int getItemCount();
 

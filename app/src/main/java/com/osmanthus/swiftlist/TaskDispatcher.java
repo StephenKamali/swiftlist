@@ -20,6 +20,7 @@ public class TaskDispatcher {
     public static final int REMOVE_ITEM = 2;
     public static final int SWAP_ITEM = 3;
     public static final int DATA_CHANGED = 4;
+    public static final int DATA_LOADED = 5;
 
     private static final TaskDispatcher ourInstance = new TaskDispatcher();
 
@@ -57,7 +58,7 @@ public class TaskDispatcher {
                         checklistItems = ChecklistDatabase.getInstance(context).getChecklistDao().getAllChecklistItemsByPosition();
                         if (externalHandler != null) {
                             Message msg = new Message();
-                            msg.what = DATA_CHANGED;
+                            msg.what = DATA_LOADED;
                             externalHandler.sendMessage(msg);
                         }
                         updateWidgetView(context);
@@ -204,14 +205,12 @@ public class TaskDispatcher {
         manager.submit(new Runnable() {
             @Override
             public void run() {
-                //TODO - add a callback that main receives so it can display # of deleted items
                 ChecklistDatabase.getInstance(context).getChecklistDao().deleteList(removed);
                 ChecklistDatabase.getInstance(context).getChecklistDao().updateList(updated);
             }
         });
     }
 
-    //TODO - haven't converted this func
     public void swapItems(final Context context, final int index1, final int index2) {
         final ChecklistItem cItem1 = checklistItems.get(index1);
         final ChecklistItem cItem2 = checklistItems.get(index2);

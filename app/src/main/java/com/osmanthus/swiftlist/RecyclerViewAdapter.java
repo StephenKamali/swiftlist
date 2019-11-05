@@ -19,6 +19,9 @@ import java.util.List;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
+    //TODO - rather than calculating this, could just store what it is in resources
+    private static final int checkedColor = Color.parseColor("#323232");
+
     private Context context;
     private ItemTouchHelper itemTouchHelper;
     private LayoutInflater layoutInflater;
@@ -53,8 +56,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             final ChecklistItem item = TaskDispatcher.getInstance().getChecklistItems(context).get(i);
             viewHolder.text.setText(item.text);
             viewHolder.checkBox.setChecked(item.isChecked);
-            //TODO - same as checkBox listener below, seems kinda inefficient
-            viewHolder.text.setTextColor(item.isChecked ? Color.GRAY : Color.parseColor("#323232"));
+            viewHolder.text.setTextColor(item.isChecked ? Color.GRAY : checkedColor);
 
             //Store the item's ID as a tag for later reference
             viewHolder.parentLayout.setTag(R.id.parent_layout, new Long(item.id));
@@ -83,9 +85,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             viewHolder.checkBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //TODO - this seems kinda messy/ inefficient
                     boolean isChecked = viewHolder.checkBox.isChecked();
-                    viewHolder.text.setTextColor(isChecked ? Color.GRAY : Color.parseColor("#323232"));
+                    viewHolder.text.setTextColor(isChecked ? Color.GRAY : checkedColor);
                     TaskDispatcher.getInstance().updateItemChecked(context, i, item.id, isChecked);
                 }
             });
