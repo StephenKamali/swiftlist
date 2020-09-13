@@ -1,2 +1,2 @@
 # swiftlist
-Simple Android list app
+Simple Android list app (outdated)
